@@ -53,7 +53,7 @@ export async function sendLeadNotification(
     to: notificationRecipients,
     subject: `New Export Lead: ${leadEmail}`,
     html: `<p>A new export was requested.</p>
-<p><strong>Email:</strong> ${leadEmail.replace(/^(.).*@/, "$1***@")}</p>
+<p><strong>Email:</strong> ${leadEmail.replace(/^(.{1,2}).*(@.*)$/, "$1***$2")}</p>
 <p><strong>Export type:</strong> ${exportType}</p>
 <p><strong>Filters:</strong></p>
 <pre>${filterSummary || "No filters"}</pre>`,

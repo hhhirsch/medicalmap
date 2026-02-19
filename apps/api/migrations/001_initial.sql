@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS congresses (
   country text,
   city text,
   start_date date,
-  end_date date,
+  end_date date CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
   typical_month int CHECK (typical_month IS NULL OR (typical_month BETWEEN 1 AND 12)),
   website_url text NOT NULL,
   tags jsonb,

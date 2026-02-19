@@ -15,18 +15,6 @@ const CSV_COLUMNS = [
   "tags",
 ];
 
-export function buildExport(
-  rows: Record<string, unknown>[],
-  exportType: "csv" | "xlsx"
-): { buffer: Buffer; contentType: string; filename: string } {
-  if (exportType === "csv") {
-    return buildCsv(rows);
-  }
-  // For xlsx, we'll build synchronously-ish
-  // but ExcelJS needs async, so we handle it differently
-  throw new Error("Use buildExportAsync for xlsx");
-}
-
 export async function buildExportAsync(
   rows: Record<string, unknown>[],
   exportType: "csv" | "xlsx"
