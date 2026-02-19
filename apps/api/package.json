@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@medicalmap/shared": "workspace:*",
-    "fastify": "^5.3.3",
+    "fastify": "^5.7.2",
     "@fastify/cors": "^11.0.1",
     "@fastify/rate-limit": "^10.2.1",
     "pg": "^8.13.1",
