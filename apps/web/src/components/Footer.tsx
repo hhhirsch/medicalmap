@@ -2,14 +2,33 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-white mt-auto">
-      <div className="max-w-[1400px] mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
-        <p>© {new Date().getFullYear()} MedicalMap. All rights reserved.</p>
-        <div className="flex gap-4 mt-2 sm:mt-0">
-          <Link href="/privacy" className="hover:text-gray-700">Privacy</Link>
-          <Link href="/imprint" className="hover:text-gray-700">Imprint</Link>
+    <footer
+      style={{
+        borderTop: "1px solid var(--border)",
+        background: "var(--surface)",
+        marginTop: "auto",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1300px",
+          margin: "0 auto",
+          padding: "20px 2.5rem",
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontSize: "12.5px",
+          color: "var(--text-muted)",
+        }}
+      >
+        <p>© {new Date().getFullYear()} MedicalMap. Alle Rechte vorbehalten.</p>
+        <div style={{ display: "flex", gap: "16px" }}>
+          <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Datenschutz</Link>
+          <Link href="/imprint" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Impressum</Link>
         </div>
       </div>
     </footer>
   );
 }
+

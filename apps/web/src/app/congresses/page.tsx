@@ -2,15 +2,24 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
-import { type CongressesResponse, type CongressRow, parseCommaList, parseQueryParams } from "@medicalmap/shared";
-import { CongressTable } from "@/components/CongressTable";
-import { SidebarFilters } from "@/components/SidebarFilters";
-import { SearchInput } from "@/components/SearchInput";
-import { QuickViews } from "@/components/QuickViews";
+import { type CongressesResponse, type CongressRow, parseQueryParams } from "@medicalmap/shared";
+import { Toolbar } from "@/components/Toolbar";
+import { CongressList } from "@/components/CongressList";
 import { ExportModal } from "@/components/ExportModal";
 import { CongressDrawer } from "@/components/CongressDrawer";
 import { Pagination } from "@/components/Pagination";
+import { Hero } from "@/components/Hero";
+import { GateSection } from "@/components/GateSection";
 import { fetchCongresses } from "@/lib/api";
+
+function deriveActiveChip(params: Record<string, string>): string {
+  if (params.tier === "1" && !params.ind && !params.country) return "tier:1";
+  if (params.ind === "Oncology" && !params.tier && !params.country) return "ind:Oncology";
+  if (params.ind === "Hematology" && !params.tier && !params.country) return "ind:Hematology";
+  if (params.country === "DE,AT,CH" && !params.ind && !params.tier) return "country:DE,AT,CH";
+  if (!params.ind && !params.tier && !params.country && !params.q) return "all";
+  return "";
+}
 
 function CongressesContent() {
   const searchParams = useSearchParams();
@@ -22,9 +31,7 @@ function CongressesContent() {
 
   const params = useMemo(() => {
     const obj: Record<string, string> = {};
-    searchParams.forEach((val, key) => {
-      obj[key] = val;
-    });
+    searchParams.forEach((val, key) => { obj[key] = val; });
     return obj;
   }, [searchParams]);
 
@@ -34,15 +41,10 @@ function CongressesContent() {
     (updates: Record<string, string | undefined>, resetPage = true) => {
       const sp = new URLSearchParams(searchParams.toString());
       for (const [key, val] of Object.entries(updates)) {
-        if (val === undefined || val === "" || val === null) {
-          sp.delete(key);
-        } else {
-          sp.set(key, val);
-        }
+        if (val === undefined || val === "" || val === null) sp.delete(key);
+        else sp.set(key, val);
       }
-      if (resetPage && !("page" in updates)) {
-        sp.delete("page");
-      }
+      if (resetPage && !("page" in updates)) sp.delete("page");
       router.push(`/congresses?${sp.toString()}`, { scroll: false });
     },
     [searchParams, router]
@@ -52,123 +54,122 @@ function CongressesContent() {
     let cancelled = false;
     setLoading(true);
     fetchCongresses(params)
-      .then((res) => {
-        if (!cancelled) setData(res);
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((res) => { if (!cancelled) setData(res); })
+      .catch((err) => { console.error("Fetch error:", err); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [params]);
 
-  const toggleFilter = useCallback(
-    (key: string, value: string) => {
-      const current = parseCommaList(params[key]);
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      setParams({ [key]: next.length > 0 ? next.join(",") : undefined });
-    },
-    [params, setParams]
-  );
+  const activeChip = deriveActiveChip(params);
 
-  const handleSort = useCallback(
-    (col: string) => {
-      const currentSort = params.sort || "name";
-      const currentDir = params.dir || "asc";
-      if (currentSort === col) {
-        setParams({ dir: currentDir === "asc" ? "desc" : "asc" }, false);
-      } else {
-        setParams({ sort: col, dir: "asc" }, false);
+  const handleChipClick = useCallback(
+    (key: string, value: string | null) => {
+      if (key === "all" || value === null) {
+        setParams({ ind: undefined, tier: undefined, country: undefined, region: undefined, q: undefined });
+      } else if (key === "ind") {
+        setParams({ ind: value, tier: undefined, country: undefined });
+      } else if (key === "country") {
+        setParams({ country: value, ind: undefined, tier: undefined });
+      } else if (key === "tier") {
+        setParams({ tier: value, ind: undefined, country: undefined });
       }
     },
-    [params, setParams]
+    [setParams]
   );
 
+  // Debounced search
+  const [searchLocal, setSearchLocal] = useState(params.q || "");
+  useEffect(() => { setSearchLocal(params.q || ""); }, [params.q]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setParams({ q: searchLocal || undefined });
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchLocal]);
+
   return (
-    <div className="max-w-[1400px] mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Congress Directory</h1>
-        <button
-          onClick={() => setExportOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+    <>
+      <Hero totalCount={data?.total} onExport={() => setExportOpen(true)} />
+
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 2.5rem 80px" }}>
+        <Toolbar
+          searchValue={searchLocal}
+          onSearchChange={setSearchLocal}
+          activeChip={activeChip}
+          onChipClick={handleChipClick}
+          onExport={() => setExportOpen(true)}
+        />
+
+        {/* Results meta */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "10px",
+            padding: "0 2px",
+            animation: "fadeUp 0.4s 0.15s ease both",
+            animationFillMode: "forwards",
+            opacity: 0,
+          }}
         >
-          Export CSV / XLSX
-        </button>
-      </div>
-
-      <SearchInput
-        value={params.q || ""}
-        onChange={(q) => setParams({ q: q || undefined })}
-      />
-
-      <QuickViews setParams={setParams} />
-
-      <div className="flex gap-6 mt-4">
-        <aside className="w-64 shrink-0 hidden lg:block">
-          <SidebarFilters
-            facets={data?.facets ?? null}
-            currentFilters={currentFilters}
-            toggleFilter={toggleFilter}
-          />
-        </aside>
-
-        <div className="flex-1 min-w-0">
-          {loading && !data ? (
-            <div className="flex items-center justify-center py-20 text-gray-400">
-              Loading…
-            </div>
-          ) : data ? (
-            <>
-              <div className="text-sm text-gray-500 mb-2">
-                {data.total} congress{data.total !== 1 ? "es" : ""} found
-              </div>
-              <CongressTable
-                items={data.items}
-                sort={currentFilters.sort}
-                dir={currentFilters.dir}
-                onSort={handleSort}
-                onRowClick={setDrawerCongress}
-                loading={loading}
-              />
-              <Pagination
-                page={currentFilters.page}
-                pageSize={currentFilters.pageSize}
-                total={data.total}
-                onPageChange={(p) => setParams({ page: String(p) }, false)}
-              />
-            </>
-          ) : (
-            <div className="text-center py-20 text-gray-400">No data</div>
-          )}
+          <div style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+            {loading && !data ? (
+              "Lade…"
+            ) : data ? (
+              <>
+                <strong style={{ color: "var(--text-dim)", fontWeight: 500 }}>{data.total}</strong> Kongresse gefunden
+                {data.total > currentFilters.pageSize && (
+                  <> · {Math.min(data.items.length, currentFilters.pageSize)} angezeigt</>
+                )}
+              </>
+            ) : null}
+          </div>
         </div>
+
+        {/* List */}
+        {loading && !data ? (
+          <div style={{ textAlign: "center", padding: "80px 0", color: "var(--text-muted)" }}>
+            Lade Kongresse…
+          </div>
+        ) : data ? (
+          <>
+            <CongressList
+              items={data.items}
+              loading={loading}
+              onDetails={setDrawerCongress}
+            />
+            <Pagination
+              page={currentFilters.page}
+              pageSize={currentFilters.pageSize}
+              total={data.total}
+              onPageChange={(p) => setParams({ page: String(p) }, false)}
+            />
+          </>
+        ) : (
+          <div style={{ textAlign: "center", padding: "80px 0", color: "var(--text-muted)" }}>
+            Keine Daten
+          </div>
+        )}
+
+        <GateSection onExport={() => setExportOpen(true)} />
       </div>
 
       {exportOpen && (
-        <ExportModal
-          filters={currentFilters}
-          onClose={() => setExportOpen(false)}
-        />
+        <ExportModal filters={currentFilters} onClose={() => setExportOpen(false)} />
       )}
 
       {drawerCongress && (
-        <CongressDrawer
-          congress={drawerCongress}
-          onClose={() => setDrawerCongress(null)}
-        />
+        <CongressDrawer congress={drawerCongress} onClose={() => setDrawerCongress(null)} />
       )}
-    </div>
+    </>
   );
 }
 
 export default function CongressesPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400">Loading…</div>}>
+    <Suspense fallback={<div style={{ textAlign: "center", padding: "80px 0", color: "var(--text-muted)" }}>Lade…</div>}>
       <CongressesContent />
     </Suspense>
   );

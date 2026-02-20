@@ -1,1 +1,73 @@
 @import "tailwindcss";
+
+:root, html, body {
+  color-scheme: light only;
+}
+
+:root {
+  --bg:          #F4F2EF;
+  --surface:     #FFFFFF;
+  --surface-2:   #F9F8F6;
+  --border:      #E5E2DC;
+  --border-mid:  #D3CFC8;
+  --accent:      #2A5F8F;
+  --accent-soft: #EBF2F9;
+  --accent-mid:  #C4D9ED;
+  --accent-text: #1D4E79;
+  --teal:        #2A7F6F;
+  --teal-soft:   #E6F4F1;
+  --amber:       #9A6B1E;
+  --amber-soft:  #FBF3E3;
+  --red:         #B34040;
+  --red-soft:    #FAEAEA;
+  --purple:      #5C4A8A;
+  --purple-soft: #F0EDF8;
+  --text:        #1C1A18;
+  --text-dim:    #5A5650;
+  --text-muted:  #9E9890;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:   0 12px 32px rgba(0,0,0,0.09), 0 4px 8px rgba(0,0,0,0.05);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.congress-card:hover {
+  border-color: var(--border-mid) !important;
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-1px);
+}
+
+.nav-link-item:hover {
+  color: var(--text) !important;
+  background: var(--border) !important;
+}
+
+@media (max-width: 900px) {
+  .hero-preview-card { display: none !important; }
+}
+
