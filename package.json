@@ -1,0 +1,13 @@
+{
+  "name": "medicalmap",
+  "private": true,
+  "scripts": {
+    "dev:api": "pnpm --filter @medicalmap/api dev",
+    "dev:web": "pnpm --filter @medicalmap/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
