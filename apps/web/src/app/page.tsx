@@ -2,19 +2,64 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-4">
-      <h1 className="text-4xl font-bold text-center mb-4">
-        Medical Congress Directory
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "80px 2.5rem",
+        maxWidth: "700px",
+        margin: "0 auto",
+        animation: "fadeUp 0.5s ease both",
+      }}
+    >
+      <h1
+        style={{
+          fontFamily: "'Instrument Serif', Georgia, serif",
+          fontSize: "clamp(36px, 5vw, 52px)",
+          fontWeight: 400,
+          textAlign: "center",
+          letterSpacing: "-0.5px",
+          lineHeight: 1.15,
+          color: "var(--text)",
+          marginBottom: "20px",
+        }}
+      >
+        Congress Intelligence für{" "}
+        <em style={{ fontStyle: "italic", color: "var(--accent)" }}>Medical Affairs.</em>
       </h1>
-      <p className="text-lg text-gray-600 text-center max-w-2xl mb-8">
-        Discover, filter, and export medical congresses worldwide.
-        Find the right events for your therapeutic area, region, and schedule.
+      <p
+        style={{
+          fontSize: "16px",
+          color: "var(--text-dim)",
+          textAlign: "center",
+          maxWidth: "480px",
+          marginBottom: "36px",
+          lineHeight: 1.7,
+          fontWeight: 300,
+        }}
+      >
+        Entdecke, filtere und exportiere medizinische Kongresse weltweit. Finde die richtigen Events für dein Therapiegebiet, deine Region und deinen Kalender.
       </p>
       <Link
         href="/congresses"
-        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          padding: "12px 28px",
+          background: "var(--accent)",
+          color: "white",
+          fontWeight: 500,
+          borderRadius: "10px",
+          textDecoration: "none",
+          fontSize: "15px",
+          letterSpacing: "-0.1px",
+          transition: "background 0.18s",
+          boxShadow: "var(--shadow-sm)",
+        }}
       >
-        Browse Congresses →
+        Congress-Directory öffnen →
       </Link>
     </div>
   );

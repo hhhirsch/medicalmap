@@ -19,7 +19,7 @@ interface Props {
 
 export function ExportModal({ filters, onClose }: Props) {
   const [email, setEmail] = useState("");
-  const [exportType, setExportType] = useState<"csv" | "xlsx">("csv");
+  const [exportType, setExportType] = useState<"csv" | "xlsx">("xlsx");
   const [consentExport, setConsentExport] = useState(false);
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -28,7 +28,6 @@ export function ExportModal({ filters, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!consentExport) return;
-
     setStatus("loading");
     try {
       await requestExport({
@@ -55,115 +54,296 @@ export function ExportModal({ filters, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(28, 26, 24, 0.45)",
+        backdropFilter: "blur(5px)",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "18px",
+          padding: "36px",
+          maxWidth: "460px",
+          width: "90%",
+          position: "relative",
+          boxShadow: "var(--shadow-lg)",
+          animation: "modalIn 0.22s ease",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "16px",
+            right: "16px",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            color: "var(--text-muted)",
+            borderRadius: "7px",
+            width: "28px",
+            height: "28px",
+            fontSize: "14px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.15s",
+          }}
+        >
+          ✕
+        </button>
+
         {status === "success" ? (
-          <div className="text-center py-4">
-            <div className="text-3xl mb-2">✉️</div>
-            <h2 className="text-lg font-semibold mb-2">Export Requested!</h2>
-            <p className="text-gray-600 text-sm">
-              Your export will be delivered to your email shortly.
+          <>
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                background: "var(--accent-soft)",
+                border: "1px solid var(--accent-mid)",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "22px",
+                marginBottom: "18px",
+              }}
+            >
+              ✅
+            </div>
+            <h2
+              style={{
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                fontSize: "22px",
+                fontWeight: 400,
+                letterSpacing: "-0.3px",
+                marginBottom: "6px",
+                color: "var(--text)",
+              }}
+            >
+              Pack wird versendet
+            </h2>
+            <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6, fontWeight: 300, marginBottom: "20px" }}>
+              Dein Congress-Pack wird gerade generiert und in den nächsten Minuten zugestellt.
             </p>
+            <div
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                padding: "14px",
+                marginBottom: "20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "9px",
+              }}
+            >
+              {[
+                { icon: "📄", text: "PDF Briefing · Onkologie + Hämatologie" },
+                { icon: "📅", text: "ICS Kalender · Events inkl. Deadlines" },
+                { icon: "📊", text: `${exportType.toUpperCase()} · vollständige Kongress-Tabelle` },
+              ].map((row) => (
+                <div key={row.text} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "var(--text-dim)" }}>
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "7px",
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "13px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {row.icon}
+                  </div>
+                  {row.text}
+                </div>
+              ))}
+            </div>
             <button
               onClick={onClose}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+              style={{
+                width: "100%",
+                background: "var(--accent)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "9px",
+                padding: "12px",
+                fontFamily: "inherit",
+                fontSize: "13.5px",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
             >
-              Close
+              Schließen
             </button>
-          </div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.55, textAlign: "center", marginTop: "10px" }}>
+              Fragen? Melde dich gerne unter{" "}
+              <a href="mailto:contact@medicalmap.io" style={{ color: "var(--text-muted)", textDecoration: "underline" }}>contact@medicalmap.io</a>
+            </div>
+          </>
         ) : (
           <form onSubmit={handleSubmit}>
-            <h2 className="text-lg font-semibold mb-4">Export Congress Data</h2>
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                background: "var(--accent-soft)",
+                border: "1px solid var(--accent-mid)",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "22px",
+                marginBottom: "18px",
+              }}
+            >
+              📤
+            </div>
+            <h2
+              style={{
+                fontFamily: "'Instrument Serif', Georgia, serif",
+                fontSize: "22px",
+                fontWeight: 400,
+                letterSpacing: "-0.3px",
+                marginBottom: "6px",
+                color: "var(--text)",
+              }}
+            >
+              Congress-Pack exportieren
+            </h2>
+            <p style={{ fontSize: "13px", color: "var(--text-dim)", lineHeight: 1.6, fontWeight: 300, marginBottom: "20px" }}>
+              Du erhältst dein Pack per E-Mail – auf Basis deiner aktuellen Filterauswahl.
+            </p>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+            {/* Email */}
+            <div style={{ marginBottom: "10px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--text-dim)", marginBottom: "5px", letterSpacing: "0.01em" }}>
+                E-Mail-Adresse *
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="name@unternehmen.de"
+                style={{
+                  width: "100%",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "9px",
+                  padding: "10px 13px",
+                  color: "var(--text)",
+                  fontFamily: "inherit",
+                  fontSize: "13.5px",
+                  outline: "none",
+                  fontWeight: 400,
+                }}
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            {/* Format */}
+            <div style={{ marginBottom: "10px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 500, color: "var(--text-dim)", marginBottom: "5px", letterSpacing: "0.01em" }}>
                 Format
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={exportType === "csv"}
-                    onChange={() => setExportType("csv")}
-                  />
-                  CSV
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    checked={exportType === "xlsx"}
-                    onChange={() => setExportType("xlsx")}
-                  />
-                  XLSX
-                </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "9px" }}>
+                {(["csv", "xlsx"] as const).map((fmt) => (
+                  <button
+                    key={fmt}
+                    type="button"
+                    onClick={() => setExportType(fmt)}
+                    style={{
+                      background: exportType === fmt ? "var(--accent-soft)" : "var(--surface)",
+                      border: `1px solid ${exportType === fmt ? "var(--accent-mid)" : "var(--border)"}`,
+                      color: exportType === fmt ? "var(--accent-text)" : "var(--text-dim)",
+                      borderRadius: "9px",
+                      padding: "10px 13px",
+                      fontFamily: "inherit",
+                      fontSize: "13.5px",
+                      fontWeight: exportType === fmt ? 500 : 400,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {fmt.toUpperCase()}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Honeypot - hidden from users */}
-            <div className="hidden" aria-hidden="true">
+            {/* Honeypot */}
+            <div style={{ display: "none" }} aria-hidden="true">
               <input type="text" name="_hp" tabIndex={-1} autoComplete="off" />
             </div>
 
-            <div className="space-y-2 mb-4">
-              <label className="flex items-start gap-2 text-sm">
+            {/* Consents */}
+            <div style={{ marginBottom: "10px" }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "12px", color: "var(--text-dim)", cursor: "pointer", marginBottom: "8px" }}>
                 <input
                   type="checkbox"
                   checked={consentExport}
                   onChange={(e) => setConsentExport(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300"
                   required
+                  style={{ marginTop: "1px" }}
                 />
-                <span>I want to receive the export by email <span className="text-red-500">*</span></span>
+                Ich möchte den Export per E-Mail erhalten *
               </label>
-              <label className="flex items-start gap-2 text-sm">
+              <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "12px", color: "var(--text-muted)", cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={consentMarketing}
                   onChange={(e) => setConsentMarketing(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300"
+                  style={{ marginTop: "1px" }}
                 />
-                <span className="text-gray-600">
-                  I&apos;d like to receive updates about new congresses and features
-                </span>
+                Updates über neue Kongresse und Features erhalten
               </label>
             </div>
 
             {status === "error" && (
-              <p className="text-red-600 text-sm mb-3">{errorMsg}</p>
+              <p style={{ color: "var(--red)", fontSize: "12px", marginBottom: "10px" }}>{errorMsg}</p>
             )}
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={status === "loading" || !consentExport}
-                className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {status === "loading" ? "Sending…" : "Send Export"}
-              </button>
+            <button
+              type="submit"
+              disabled={status === "loading" || !consentExport}
+              style={{
+                width: "100%",
+                background: "var(--accent)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "9px",
+                padding: "12px",
+                fontFamily: "inherit",
+                fontSize: "13.5px",
+                fontWeight: 500,
+                cursor: status === "loading" || !consentExport ? "not-allowed" : "pointer",
+                opacity: status === "loading" || !consentExport ? 0.5 : 1,
+                transition: "background 0.18s, box-shadow 0.18s",
+                letterSpacing: "-0.1px",
+                marginBottom: "10px",
+              }}
+            >
+              {status === "loading" ? "Wird gesendet…" : "Congress-Pack per E-Mail senden →"}
+            </button>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.55, textAlign: "center" }}>
+              Transaktionale E-Mail – kein Newsletter.{" "}
+              <a href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "underline" }}>Datenschutz</a>
             </div>
           </form>
         )}
