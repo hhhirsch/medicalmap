@@ -15,6 +15,12 @@ export const CongressRowSchema = z.object({
   website_url: z.string().url(),
   tags: z.array(z.string()).nullable(),
   updated_at: z.string(),
+  organizer: z.string().nullable().optional(),
+  indication_detail: z.string().nullable().optional(),
+  location_text: z.string().nullable().optional(),
+  deadlines_text: z.string().nullable().optional(),
+  rationale: z.string().nullable().optional(),
+  score: z.number().int().nullable().optional(),
 });
 
 export type CongressRow = z.infer<typeof CongressRowSchema>;

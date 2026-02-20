@@ -13,6 +13,12 @@ const CSV_COLUMNS = [
   "typical_month",
   "website_url",
   "tags",
+  "organizer",
+  "indication_detail",
+  "location_text",
+  "deadlines_text",
+  "rationale",
+  "score",
 ];
 
 export async function buildExportAsync(

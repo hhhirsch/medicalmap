@@ -77,6 +77,21 @@ This imports the sample CSV from `apps/api/seed/congresses.csv`. To import a cus
 pnpm --filter @medicalmap/api seed -- /path/to/your/file.csv
 ```
 
+### 4b. Import from Excel (XLSX)
+
+To import congress data from the bundled Excel file:
+
+```bash
+# Apply the schema migration first (if not already done):
+psql "$DATABASE_URL" -f apps/api/migrations/002_add_congress_fields.sql
+
+# Then run the import script (defaults to apps/api/seed/Data congress.xlsx):
+pnpm --filter @medicalmap/api import-xlsx
+
+# Or supply a custom file path:
+pnpm --filter @medicalmap/api import-xlsx -- /path/to/Data\ congress.xlsx
+```
+
 ### 5. Start development servers
 
 ```bash
@@ -188,24 +203,30 @@ Rate limited to 5 requests per 15 minutes per IP.
 
 ### congresses
 
-| Column        | Type        | Notes                                      |
-| ------------- | ----------- | ------------------------------------------ |
-| id            | uuid (PK)   | Auto-generated                             |
-| name          | text        | NOT NULL                                   |
-| indication    | text        | NOT NULL                                   |
-| tier          | int         | 1, 2, or 3                                 |
-| region        | text        | EU, NA, APAC, LATAM, MEA                   |
-| scope         | text        | International, European, National, Regional |
-| country       | text        | Nullable                                   |
-| city          | text        | Nullable                                   |
-| start_date    | date        | Nullable                                   |
-| end_date      | date        | Nullable                                   |
-| typical_month | int         | 1-12, nullable                             |
-| website_url   | text        | NOT NULL                                   |
-| tags          | jsonb       | Array of strings, nullable                 |
-| updated_at    | timestamptz | Default now()                              |
+| Column           | Type        | Notes                                      |
+| ---------------- | ----------- | ------------------------------------------ |
+| id               | uuid (PK)   | Auto-generated                             |
+| name             | text        | NOT NULL                                   |
+| indication       | text        | NOT NULL                                   |
+| tier             | int         | 1, 2, or 3                                 |
+| region           | text        | EU, NA, APAC, LATAM, MEA                   |
+| scope            | text        | International, European, National, Regional |
+| country          | text        | Nullable                                   |
+| city             | text        | Nullable                                   |
+| start_date       | date        | Nullable                                   |
+| end_date         | date        | Nullable                                   |
+| typical_month    | int         | 1-12, nullable                             |
+| website_url      | text        | NOT NULL; unique index for upserts         |
+| tags             | jsonb       | Array of strings, nullable                 |
+| updated_at       | timestamptz | Default now()                              |
+| organizer        | text        | Gesellschaft/Organisator (nullable)        |
+| indication_detail| text        | Detailed indication from Indikation(en) column (nullable) |
+| location_text    | text        | Raw "Üblicher Ort" value (nullable)        |
+| deadlines_text   | text        | Wichtige Deadlines (nullable)              |
+| rationale        | text        | Rationale column (nullable)                |
+| score            | int         | Derived from tier: 90/75/60 (nullable)     |
 
-Indexes: indication, tier, region, country, start_date, GIN on tags.
+Indexes: indication, tier, region, country, start_date, GIN on tags, unique on website_url (where not null).
 
 ### leads
 

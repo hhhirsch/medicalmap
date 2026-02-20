@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "lint": "tsc --noEmit",
     "migrate": "tsx scripts/migrate.ts",
-    "seed": "tsx scripts/import_congresses.ts"
+    "seed": "tsx scripts/import_congresses.ts",
+    "import-xlsx": "tsx scripts/import_xlsx.ts"
   },
   "dependencies": {
     "@medicalmap/shared": "workspace:*",
