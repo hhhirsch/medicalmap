@@ -1,128 +1,76 @@
 import { FastifyInstance } from "fastify";
-import { parseQueryParams, type CongressRow, type Facets, type FacetCount } from "@medicalmap/shared";
-import { query } from "../db";
-
-interface WhereClause {
-  conditions: string[];
-  params: unknown[];
-}
-
-function buildWhereClause(parsed: ReturnType<typeof parseQueryParams>): WhereClause {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-  let idx = 1;
-
-  if (parsed.q) {
-    conditions.push(
-      `(c.name ILIKE $${idx} OR c.city ILIKE $${idx} OR c.tags::text ILIKE $${idx})`
-    );
-    params.push(`%${parsed.q}%`);
-    idx++;
-  }
-
-  if (parsed.ind.length > 0) {
-    conditions.push(`c.indication = ANY($${idx}::text[])`);
-    params.push(parsed.ind);
-    idx++;
-  }
-
-  if (parsed.tier.length > 0) {
-    conditions.push(`c.tier = ANY($${idx}::int[])`);
-    params.push(parsed.tier.map(Number));
-    idx++;
-  }
-
-  if (parsed.region.length > 0) {
-    conditions.push(`c.region = ANY($${idx}::text[])`);
-    params.push(parsed.region);
-    idx++;
-  }
-
-  if (parsed.country.length > 0) {
-    conditions.push(`c.country = ANY($${idx}::text[])`);
-    params.push(parsed.country);
-    idx++;
-  }
-
-  if (parsed.month.length > 0) {
-    conditions.push(`c.typical_month = ANY($${idx}::int[])`);
-    params.push(parsed.month.map(Number));
-    idx++;
-  }
-
-  return { conditions, params };
-}
-
-const ALLOWED_SORT_COLS: Record<string, string> = {
-  name: "c.name",
-  start_date: "c.start_date",
-  tier: "c.tier",
-};
+import { parseQueryParams, type Facets, type FacetCount } from "@medicalmap/shared";
+import { getAll, applyFilters, type FilterParams } from "../data/congressStore";
 
 export async function congressesRoutes(app: FastifyInstance) {
   app.get("/congresses", async (req, reply) => {
     const parsed = parseQueryParams(req.query as Record<string, string | undefined>);
-    const { conditions, params } = buildWhereClause(parsed);
 
-    const whereSQL = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const sortCol = ALLOWED_SORT_COLS[parsed.sort] || "c.name";
-    const sortDir = parsed.dir === "desc" ? "DESC" : "ASC";
-    const offset = (parsed.page - 1) * parsed.pageSize;
-
-    // Count
-    const countResult = await query<{ count: string }>(
-      `SELECT COUNT(*) as count FROM congresses c ${whereSQL}`,
-      params
-    );
-    const total = parseInt(countResult[0]?.count || "0", 10);
-
-    // Items
-    const itemParams = [...params, parsed.pageSize, offset];
-    const items = await query<CongressRow>(
-      `SELECT c.* FROM congresses c ${whereSQL} ORDER BY ${sortCol} ${sortDir} NULLS LAST LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      itemParams
-    );
-
-    // Facets
-    const baseWhere = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const countryWhere = conditions.length > 0
-      ? `WHERE ${conditions.join(" AND ")} AND c.country IS NOT NULL`
-      : "WHERE c.country IS NOT NULL";
-    const monthWhere = conditions.length > 0
-      ? `WHERE ${conditions.join(" AND ")} AND c.typical_month IS NOT NULL`
-      : "WHERE c.typical_month IS NOT NULL";
-
-    const facets: Facets = {
-      tier: [],
-      region: [],
-      country: [],
-      month: [],
-      ind: [],
+    const filterParams: FilterParams = {
+      q: parsed.q,
+      ind: parsed.ind,
+      tier: parsed.tier,
+      region: parsed.region,
+      country: parsed.country,
+      month: parsed.month,
+      sort: parsed.sort,
+      dir: parsed.dir,
     };
 
-    const facetQueries = [
-      { key: "tier" as const, sql: `SELECT c.tier::text as value, COUNT(*)::int as count FROM congresses c ${baseWhere} GROUP BY c.tier ORDER BY c.tier` },
-      { key: "region" as const, sql: `SELECT c.region as value, COUNT(*)::int as count FROM congresses c ${baseWhere} GROUP BY c.region ORDER BY count DESC` },
-      { key: "country" as const, sql: `SELECT c.country as value, COUNT(*)::int as count FROM congresses c ${countryWhere} GROUP BY c.country ORDER BY count DESC LIMIT 30` },
-      { key: "month" as const, sql: `SELECT c.typical_month::text as value, COUNT(*)::int as count FROM congresses c ${monthWhere} GROUP BY c.typical_month ORDER BY c.typical_month` },
-      { key: "ind" as const, sql: `SELECT c.indication as value, COUNT(*)::int as count FROM congresses c ${baseWhere} GROUP BY c.indication ORDER BY count DESC` },
-    ];
+    const all = getAll();
+    const filtered = applyFilters(all, filterParams);
+    const total = filtered.length;
 
-    for (const fq of facetQueries) {
-      try {
-        const rows = await query<FacetCount>(fq.sql, params);
-        facets[fq.key] = rows.filter((r) => r.value !== null);
-      } catch {
-        // Facet query failed, leave empty
-      }
-    }
+    // Pagination
+    const pageSize = Math.min(parsed.pageSize, 200);
+    const page = parsed.page;
+    const offset = (page - 1) * pageSize;
+    const items = filtered.slice(offset, offset + pageSize);
+
+    // Facets — computed from the filtered set
+    const facets: Facets = {
+      tier: countFacet(filtered, (c) => c.tier != null ? String(c.tier) : null, (a, b) => Number(a.value) - Number(b.value)),
+      region: countFacet(filtered, (c) => c.region ?? null),
+      country: countFacet(filtered, (c) => c.country ?? null, undefined, 30),
+      month: countFacet(filtered, (c) => c.typical_month != null ? String(c.typical_month) : null, (a, b) => Number(a.value) - Number(b.value)),
+      ind: countFacet(filtered, (c) => c.indication ?? null),
+    };
 
     return reply.send({
       items,
       total,
-      page: parsed.page,
-      pageSize: parsed.pageSize,
+      page,
+      pageSize,
       facets,
     });
   });
+}
+
+/** Build facet counts from an array of records. */
+function countFacet(
+  records: ReturnType<typeof getAll>,
+  getValue: (c: ReturnType<typeof getAll>[number]) => string | null,
+  sort?: (a: FacetCount, b: FacetCount) => number,
+  limit?: number
+): FacetCount[] {
+  const counts = new Map<string, number>();
+  for (const c of records) {
+    const val = getValue(c);
+    if (val === null || val === undefined) continue;
+    counts.set(val, (counts.get(val) ?? 0) + 1);
+  }
+
+  let result: FacetCount[] = Array.from(counts.entries()).map(([value, count]) => ({ value, count }));
+
+  if (sort) {
+    result.sort(sort);
+  } else {
+    result.sort((a, b) => b.count - a.count);
+  }
+
+  if (limit !== undefined) {
+    result = result.slice(0, limit);
+  }
+
+  return result;
 }
