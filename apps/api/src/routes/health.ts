@@ -1,13 +1,13 @@
 import { FastifyInstance } from "fastify";
-import { pool } from "../db";
+import { getAll } from "../data/congressStore";
 
 export async function healthRoutes(app: FastifyInstance) {
   app.get("/health", async (_req, reply) => {
     try {
-      await pool.query("SELECT 1");
-      return reply.send({ status: "ok", db: "connected" });
+      const count = getAll().length;
+      return reply.send({ status: "ok", congresses: count });
     } catch {
-      return reply.status(503).send({ status: "error", db: "disconnected" });
+      return reply.status(503).send({ status: "error", message: "Data unavailable" });
     }
   });
 }

@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export const CongressRowSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
+  pillar: z.string().optional(),
   indication: z.string(),
   tier: z.number().int().min(1).max(3),
   region: z.string(),
@@ -14,7 +15,7 @@ export const CongressRowSchema = z.object({
   typical_month: z.number().int().min(1).max(12).nullable(),
   website_url: z.string().url(),
   tags: z.array(z.string()).nullable(),
-  updated_at: z.string(),
+  updated_at: z.string().optional(),
   organizer: z.string().nullable().optional(),
   indication_detail: z.string().nullable().optional(),
   location_text: z.string().nullable().optional(),
