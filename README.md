@@ -75,7 +75,7 @@ NODE_ENV=development
 **Web** — create `apps/web/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 ```
 
 ### 3. Run API locally
@@ -228,7 +228,9 @@ Each record in `apps/api/data/congresses.json` has:
 1. Connect your GitHub repo to Vercel.
 2. Set root directory to `apps/web`.
 3. Set build command: `cd ../.. && pnpm install && pnpm --filter @medicalmap/shared build && pnpm --filter @medicalmap/web build`
-4. Set environment variable: `NEXT_PUBLIC_API_URL=https://your-api.onrender.com`
+4. Set environment variable: `NEXT_PUBLIC_API_BASE_URL=https://your-api.onrender.com`
+5. **Redeploy after changing env vars** — Next.js bakes `NEXT_PUBLIC_*` values at build time.
+6. To verify connectivity, visit `/congresses?debug=1` and click "Ping API /health". The debug panel also shows the resolved API base URL in the browser.
 
 ### Render (API)
 
