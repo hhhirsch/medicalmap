@@ -27,9 +27,10 @@ export function GateSection({ onExport }: Props) {
         animationFillMode: "forwards",
         opacity: 0,
       }}
+      className="gate-section"
     >
       {/* Left */}
-      <div style={{ background: "var(--surface)", padding: "36px 40px" }}>
+      <div style={{ background: "var(--surface)", padding: "36px 40px" }} className="gate-section-left">
         <div
           style={{
             display: "flex",
@@ -111,7 +112,7 @@ export function GateSection({ onExport }: Props) {
       </div>
 
       {/* Right */}
-      <div style={{ background: "var(--surface-2)", padding: "36px 40px" }}>
+      <div style={{ background: "var(--surface-2)", padding: "36px 40px" }} className="gate-section-right">
         <div
           style={{
             fontSize: "15px",
