@@ -45,6 +45,7 @@ export function CongressCardHeader() {
         animationFillMode: "forwards",
         opacity: 0,
       }}
+      className="congress-card-header"
     >
       {["Kongress", "Ort", "Datum", "Aktion"].map((th, i) => (
         <div
@@ -137,27 +138,36 @@ export function CongressCard({ congress, onDetails }: Props) {
         )}
       </div>
 
-      {/* Location cell */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-        <div style={{ fontSize: "13px", color: "var(--text)" }}>{congress.city || "—"}</div>
-        <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>{congress.country || congress.region}</div>
-      </div>
-
-      {/* Date cell */}
-      <div>
-        <div style={{ fontSize: "13px", color: "var(--text)" }}>
-          {formatDate(congress.start_date, congress.end_date)}
+      {/*
+        On desktop this wrapper is `display:contents` so the two cells (location +
+        date) participate in the parent grid as normal columns.  On mobile the CSS
+        switches it to `display:flex` so both cells sit side-by-side in one row,
+        preventing any overlap even with long city names.
+      */}
+      <div className="congress-card-meta" style={{ display: "contents" }}>
+        {/* Location cell */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "3px", minWidth: 0 }}>
+          <div style={{ fontSize: "13px", color: "var(--text)" }}>{congress.city || "—"}</div>
+          <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>{congress.country || congress.region}</div>
         </div>
-        {congress.start_date && (
-          <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "2px" }}>
-            {formatYear(congress.start_date)}
+
+        {/* Date cell */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: "13px", color: "var(--text)" }}>
+            {formatDate(congress.start_date, congress.end_date)}
           </div>
-        )}
+          {congress.start_date && (
+            <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "2px" }}>
+              {formatYear(congress.start_date)}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Action cell */}
       <div
         style={{ display: "flex", justifyContent: "flex-end", gap: "6px", alignItems: "center" }}
+        className="congress-card-actions"
         onClick={(e) => e.stopPropagation()}
       >
         <button

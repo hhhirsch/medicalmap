@@ -71,3 +71,117 @@ body {
   .hero-preview-card { display: none !important; }
 }
 
+/* ── Mobile responsive overrides ─────────────────────────── */
+
+/* Hero: single-column layout on narrow screens */
+@media (max-width: 700px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    padding: 32px 1rem 24px !important;
+    gap: 24px !important;
+  }
+}
+
+/* Stats bar: 2×2 grid on mobile instead of 1×4 row */
+@media (max-width: 600px) {
+  .stats-bar {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+  }
+  .stats-bar-item {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  /* Restore right border for odd items (left column) */
+  .stats-bar-item:nth-child(odd) {
+    border-right: 1px solid var(--border) !important;
+  }
+  /* Remove bottom border from last row */
+  .stats-bar-item:nth-child(3),
+  .stats-bar-item:nth-child(4) {
+    border-bottom: none !important;
+  }
+}
+
+/* Congress directory padding on mobile */
+@media (max-width: 700px) {
+  .congress-directory-inner {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Congress card: stacked layout on mobile */
+@media (max-width: 640px) {
+  /* Hide the desktop-only column header */
+  .congress-card-header { display: none !important; }
+
+  .congress-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+
+  /*
+   * On mobile, the meta wrapper switches from `display:contents` (desktop, acts
+   * as transparent grid pass-through) to a flex row so location and date sit
+   * side-by-side without overlapping even with long city names.
+   */
+  .congress-card-meta {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+  }
+  .congress-card-meta > * {
+    flex: 1 1 100px !important;
+    min-width: 0 !important;
+  }
+
+  /* Actions: push to the right */
+  .congress-card-actions {
+    justify-content: flex-end !important;
+  }
+  /* Ensure star + details buttons have comfortable touch targets */
+  .congress-card-actions button,
+  .congress-card-actions a {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* GateSection (Congress-Pack): single column on mobile */
+@media (max-width: 700px) {
+  .gate-section {
+    grid-template-columns: 1fr !important;
+  }
+  .gate-section-left,
+  .gate-section-right {
+    padding: 24px 20px !important;
+  }
+}
+
+/* Toolbar chips: ensure proper touch targets (≥44px) and no overflow */
+@media (max-width: 700px) {
+  .toolbar-chips {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    /* prevent chips from being cut off on narrow screens */
+    padding-bottom: 4px !important;
+  }
+  .toolbar-chips button {
+    min-height: 44px !important;
+    flex-shrink: 0 !important;
+  }
+  .toolbar-export-btn {
+    min-height: 44px !important;
+    width: 100% !important;
+  }
+}
+

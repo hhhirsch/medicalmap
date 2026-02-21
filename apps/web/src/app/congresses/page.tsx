@@ -14,9 +14,8 @@ import { fetchCongresses } from "@/lib/api";
 
 function deriveActiveChip(params: Record<string, string>): string {
   if (params.tier === "1" && !params.ind && !params.country) return "tier:1";
-  if (params.ind === "Oncology" && !params.tier && !params.country) return "ind:Oncology";
-  if (params.ind === "Hematology" && !params.tier && !params.country) return "ind:Hematology";
   if (params.country === "DE,AT,CH" && !params.ind && !params.tier) return "country:DE,AT,CH";
+  if (params.ind && !params.tier && !params.country) return `ind:${params.ind}`;
   if (!params.ind && !params.tier && !params.country && !params.q) return "all";
   return "";
 }
@@ -139,13 +138,14 @@ function CongressesContent() {
     <>
       <Hero totalCount={data?.total} onExport={() => setExportOpen(true)} />
 
-      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 2.5rem 80px" }}>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "0 2.5rem 80px" }} className="congress-directory-inner">
         <Toolbar
           searchValue={searchLocal}
           onSearchChange={setSearchLocal}
           activeChip={activeChip}
           onChipClick={handleChipClick}
           onExport={() => setExportOpen(true)}
+          indFacets={data?.facets?.ind}
         />
 
         {/* Results meta */}

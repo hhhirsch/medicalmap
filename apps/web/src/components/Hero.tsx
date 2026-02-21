@@ -25,6 +25,7 @@ export function Hero({ totalCount, onExport }: Props) {
         alignItems: "center",
         animation: "fadeUp 0.5s ease both",
       }}
+      className="hero-grid"
     >
       {/* Left */}
       <div>
@@ -94,6 +95,7 @@ export function Hero({ totalCount, onExport }: Props) {
             boxShadow: "var(--shadow-sm)",
             width: "fit-content",
           }}
+          className="stats-bar"
         >
           {[
             { num: totalCount != null ? String(totalCount) : "…", label: "Kongresse" },
@@ -108,6 +110,7 @@ export function Hero({ totalCount, onExport }: Props) {
                 textAlign: "center",
                 borderRight: i < arr.length - 1 ? "1px solid var(--border)" : "none",
               }}
+              className="stats-bar-item"
             >
               <div
                 style={{
