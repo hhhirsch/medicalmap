@@ -21,11 +21,48 @@ function deriveActiveChip(params: Record<string, string>): string {
   return "";
 }
 
+function DebugPanel() {
+  const [pingResult, setPingResult] = useState<string | null>(null);
+  const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
+  async function handlePing() {
+    setPingResult("pinging…");
+    try {
+      const res = await fetch(`${apiBase}/health`);
+      const text = await res.text();
+      setPingResult(`${res.status} ${res.statusText}: ${text}`);
+    } catch (err) {
+      setPingResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return (
+    <div style={{ margin: "24px 0", padding: "16px", border: "1px dashed #aaa", borderRadius: "8px", fontSize: "13px", color: "#555" }}>
+      <strong>Debug Panel</strong>
+      <div style={{ marginTop: "8px" }}>
+        <span>API base: </span><code>{apiBase || "(not set)"}</code>
+      </div>
+      <button
+        onClick={handlePing}
+        style={{ marginTop: "10px", padding: "6px 14px", cursor: "pointer", borderRadius: "4px", border: "1px solid #aaa" }}
+      >
+        Ping API /health
+      </button>
+      {pingResult && (
+        <div style={{ marginTop: "8px" }}>
+          <code>{pingResult}</code>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CongressesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [data, setData] = useState<CongressesResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [drawerCongress, setDrawerCongress] = useState<CongressRow | null>(null);
 
@@ -53,9 +90,19 @@ function CongressesContent() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(null);
+
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "(not set)";
+    console.debug("[congresses] search params:", params);
+    console.debug("[congresses] computed filters:", currentFilters);
+    console.debug("[congresses] API base URL:", apiBase);
+
     fetchCongresses(params)
       .then((res) => { if (!cancelled) setData(res); })
-      .catch((err) => { console.error("Fetch error:", err); })
+      .catch((err) => {
+        console.error("[congresses] Fetch error:", err);
+        if (!cancelled) setError(err?.message ?? String(err));
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [params]);
@@ -133,6 +180,10 @@ function CongressesContent() {
           <div style={{ textAlign: "center", padding: "80px 0", color: "var(--text-muted)" }}>
             Lade Kongresse…
           </div>
+        ) : error ? (
+          <div style={{ textAlign: "center", padding: "80px 0", color: "#c0392b", fontWeight: 500 }}>
+            Fehler: {error}
+          </div>
         ) : data ? (
           <>
             <CongressList
@@ -154,6 +205,10 @@ function CongressesContent() {
         )}
 
         <GateSection onExport={() => setExportOpen(true)} />
+
+        {params.debug === "1" && (
+          <DebugPanel />
+        )}
       </div>
 
       {exportOpen && (
