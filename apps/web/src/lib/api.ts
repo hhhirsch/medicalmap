@@ -1,4 +1,16 @@
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+function getApiUrl(): string {
+  const url =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "";
+  if (!url) {
+    // Make failure explicit (helps debugging)
+    throw new Error(
+      "Missing NEXT_PUBLIC_API_BASE_URL. Set it in Vercel (Production) and redeploy."
+    );
+  }
+  return url.replace(/\/$/, "");
+}
 
 export async function fetchCongresses(
   params: Record<string, string | undefined>
@@ -7,8 +19,20 @@ export async function fetchCongresses(
   for (const [key, val] of Object.entries(params)) {
     if (val) sp.set(key, val);
   }
-  const res = await fetch(`${API_URL}/v1/congresses?${sp.toString()}`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+  // defaults to avoid empty queries
+  if (!sp.get("page")) sp.set("page", "1");
+  if (!sp.get("pageSize")) sp.set("pageSize", "25");
+
+  const apiUrl = getApiUrl();
+  const res = await fetch(`${apiUrl}/v1/congresses?${sp.toString()}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`API error ${res.status}: ${text || res.statusText}`);
+  }
   return res.json();
 }
 
@@ -19,14 +43,15 @@ export async function requestExport(body: {
   consentExport: true;
   consentMarketing?: boolean;
 }): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(`${API_URL}/v1/exports`, {
+  const apiUrl = getApiUrl();
+  const res = await fetch(`${apiUrl}/v1/exports`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: "Export failed" }));
-    throw new Error(err.error || "Export failed");
+    const text = await res.text().catch(() => "");
+    throw new Error(text || "Export failed");
   }
   return res.json();
 }
